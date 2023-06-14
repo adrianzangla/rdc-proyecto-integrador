@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Encuesta</title>
+
+    <style>
+        main {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .uncuyo {
+            max-width: 50%;
+            max-height: 50%;
+            margin: auto
+        }
+
+        div img {
+            max-width: 100%;
+            max-height: 25px;
+        }
+
+        .column {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .row {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-evenly;
+        }
+
+        * {
+            margin-top: 5px;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <main>
+        <img class="row uncuyo" src="https://www.uncuyo.edu.ar/assets/imgs/logo_uncu23.png" alt="uncuyo_logo">
+        <h1 class="row">Elija su equipo favorito</h1>
+        <form onsubmit="return validate()" method="post" class="row">
+            <div class="column">
+                <label for="email">Ingrese su e-mail</label>
+                <input type="radio" id="boca" name="team" value="boca">
+                <input type="radio" id="river" name="team" value="river">
+                <input type="radio" id="sanlo" name="team" value="sanlo">
+                <input type="radio" id="racing" name="team" value="racing">
+                <input type="radio" id="indep" name="team" value="indep">
+                <br>
+            </div>
+
+            <div class="column">
+                <input type="email" name="email" id="email">
+                <label for="boca">Boca</label>
+                <label for="river">River</label>
+                <label for="sanlo">San Lorenzo</label>
+                <label for="racing">Racing</label>
+                <label for="indep">Independiente</label>
+                <input type="submit" value="Enviar">
+            </div>
+            <br>
+            <div class="column">
+                <br>
+                <img src="img/boca.png" alt="boca_logo">
+                <img src="img/river.png" alt="river_logo">
+                <img src="img/sanlo.png" alt="sanlo_logo">
+                <img src="/img/racing.png" alt="racing_logo">
+                <img src="/img/indep.png" alt="indep_logo">
+                <br>
+            </div>
+            <div class="column">
+                <br>
+                <span id="boca"></span>
+                <span id="river"></span>
+                <span id="sanlo"></span>
+                <span id="racing"></span>
+                <span id="indep"></span>
+                <br>
+            </div>
+        </form>
+    </main>
+
+    <script>
+        function validate() {
+            var email = document.getElementById('email').value;
+            var teamSelected = document.querySelector('input[name="team"]:checked');
+
+            if (email.length < 7) {
+                alert('Email inválido');
+                return false;
+            }
+
+            if (email.indexOf('@') === -1 || email.indexOf('@') === 0 || email.indexOf('@') === email.length - 1) {
+                alert('Email inválido');
+                return false;
+            }
+
+            if (email.indexOf('.') === -1 || email.indexOf('.') === 0 || email.indexOf('.') === email.length - 1) {
+                alert('Email inválido');
+                return false;
+            }
+
+            var auxemail = email.replace('@', '').replace('.', '');
+            var specialChars = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/;
+            if (specialChars.test(auxemail)) {
+                alert('Email inválido');
+                return false;
+            }
+
+            if (!teamSelected) {
+                alert('Seleccione un equipo');
+                return false;
+            }
+
+            return true;
+        }
+
+        const fetchData = async () => {
+            try {
+                const res = await fetch('/data/teams.json', {
+                    method: 'GET'
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    console.log(data);
+
+                    for (let team in data) {
+                        const span = document.querySelector(`span[id=${team}]`);
+                        span.innerHTML = `${data[team]}`;
+                    }
+                } else {
+                    throw new Error('Response not okay');
+                }
+            } catch (error) {
+                console.log('Error:', error);
+            }
+        }
+
+        fetchData();
+        setInterval(fetchData, 5000);
+    </script>
+</body>
+
+</html>
