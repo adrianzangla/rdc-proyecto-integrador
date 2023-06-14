@@ -3,26 +3,6 @@ const https = require('https');
 const fs = require('fs');
 const qs = require('querystring');
 
-const write = async (filename, data, encoding) => {
-    try {
-        await fs.promises.writeFile(filename, data, encoding);
-    } catch (err) {
-        throw err;
-    }
-};
-
-const read = async (filename, encoding) => {
-    if (!fs.existsSync(filename)) {
-        throw new Error('File not found');
-    }
-    try {
-        const data = await fs.promises.readFile(filename, encoding);
-        return data;
-    } catch (err) {
-        throw err;
-    }
-};
-
 const post = async (req, res) => {
     try {
         let body = '';
@@ -39,7 +19,7 @@ const post = async (req, res) => {
         const email = data['email'];
         const team = data['team'];
 
-        const file = await read('data/emails.json', 'utf-8');
+        const file = await fs.promises.readFile('data/emails.json', 'utf-8');
         const emails = JSON.parse(file);
 
         if (emails[email]) {
@@ -50,13 +30,13 @@ const post = async (req, res) => {
 
         emails[email] = true;
 
-        const teamsFile = await read('data/teams.json', 'utf-8');
+        const teamsFile = await fs.promises.readFile('data/teams.json', 'utf-8');
         const teams = JSON.parse(teamsFile);
 
         teams[team] += 1;
 
-        write('data/teams.json', JSON.stringify(teams), 'utf-8');
-        write('data/emails.json', JSON.stringify(emails), 'utf-8');
+        fs.promises.writeFile('data/teams.json', JSON.stringify(teams), 'utf-8');
+        fs.promises.writeFile('data/emails.json', JSON.stringify(emails), 'utf-8');
 
         res.writeHead(303, { 'Location': '/' });
         res.end();
@@ -91,16 +71,18 @@ const get = async (req, res) => {
         if (filePath.endsWith('.html')) {
             res.writeHead(200, { 'Content-Type': 'text/html' });
             encoding = 'utf-8';
-        }
-        if (filePath.endsWith('.json')) {
+        } else if (filePath.endsWith('.json')) {
             res.writeHead(200, { 'Content-Type': 'application/json' });
             encoding = 'utf-8';
-        }
-        if (filePath.endsWith('.png')) {
+        } else if (filePath.endsWith('.png')) {
             res.writeHead(200, { 'Content-Type': 'image/png' });
             encoding = null;
+        } else {
+            res.writeHead(404);
+            res.end();
+            return;
         }
-        const file = await read(filePath, encoding);
+        const file = await fs.promises.readFile(filePath, encoding);
         res.end(file);
     } catch (error) {
         console.error('Error:', error);
